@@ -14,10 +14,7 @@ pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_
 # Initializing mediapipe drawing class, useful for annotation.
 mp_drawing = mp.solutions.drawing_utils
 
-"""### **<font style="color:rgb(134,19,348)">Read an Image</font>**
 
-Now we will read a sample image using the function [**`cv2.imread()`**](https://docs.opencv.org/3.4/d4/da8/group__imgcodecs.html#ga288b8b3da0892bd651fce07b3bbd3a56) and then display that image using the [**`matplotlib`**](https://matplotlib.org/stable/index.html) library.
-"""
 
 # Read an image from the specified path.
 sample_img = cv2.imread('Introduction to Pose Detection and Pose Classification-/Introduction to Pose Detection and Pose Classification/media/sample.jpg')
@@ -27,25 +24,6 @@ plt.figure(figsize = [10, 10])
 plt.imshow(sample_img)
 # Display the sample image, also convert BGR to RGB for display.
 plt.title("Sample Image");plt.axis('off');plt.imshow(sample_img[:,:,::-1]);plt.show()
-
-"""## **<font style="color:rgb(134,19,348)">Perform Pose Detection</font>**
-
-Now we will pass the image to the pose detection machine learning pipeline by using the function **`mp.solutions.pose.Pose().process()`**. But the pipeline expects the input images in **`RGB`** color format so first we will have to convert the sample image from **`BGR`** to **`RGB`** format using the function [**`cv2.cvtColor()`**](https://docs.opencv.org/3.4/d8/d01/group__imgproc__color__conversions.html#ga397ae87e1288a81d2363b61574eb8cab) as OpenCV reads images in **`BGR`** format (instead of **`RGB`**).
-
-After performing the pose detection, we will get a list of thirty-three landmarks representing the body joint locations of the prominent person in the image. Each landmark has:
-
-* **`x`** - It is the landmark x-coordinate normalized to [0.0, 1.0] by the image width.
-
-
-* **`y`**: It is the landmark y-coordinate normalized to [0.0, 1.0] by the image height.
-
-
-* **`z`**: It is the landmark z-coordinate normalized to roughly the same scale as **`x`**. It represents the landmark depth with midpoint of hips being the origin, so the smaller the value of z, the closer the landmark is to the camera.
-
-* **`visibility`**: It is a value with range [0.0, 1.0] representing the possibility of the landmark being visible (not occluded) in the image. This is a useful variable when deciding if you want to show a particular joint because it might be occluded or partially visible in the image.
-
-After performing the pose detection on the sample image above, we will display the first two landmarks from the list, so that you get a better idea of the output of the model.
-"""
 
 # Perform pose detection after converting the image into RGB format.
 results = pose.process(cv2.cvtColor(sample_img, cv2.COLOR_BGR2RGB))
@@ -59,7 +37,6 @@ if results.pose_landmarks:
         # Display the found normalized landmarks.
         print(f'{mp_pose.PoseLandmark(i).name}:\n{results.pose_landmarks.landmark[mp_pose.PoseLandmark(i).value]}')
 
-"""Now we will convert the two normalized landmarks displayed above into their original scale by using the width and height of the  image."""
 
 # Retrieve the height and width of the sample image.
 image_height, image_width, _ = sample_img.shape
@@ -94,20 +71,10 @@ if results.pose_landmarks:
     # Display the output image with the landmarks drawn, also convert BGR to RGB for display.
     plt.title("Output");plt.axis('off');plt.imshow(img_copy[:,:,::-1]);plt.show()
 
-"""Now we will go a step further and visualize the landmarks in three-dimensions (3D) using the function **`mp.solutions.drawing_utils.plot_landmarks()`**. We will need the POSE_WORLD_LANDMARKS that is another list of pose landmarks in world coordinates that has the 3D coordinates in meters with the origin at the center between the hips of the person.
-
-<img src='https://drive.google.com/uc?export=download&id=1JPQCLOPZkS8b3VBNtmc2aOfuAjhddSMZ' width=400>
-"""
 
 # Plot Pose landmarks in 3D.
 mp_drawing.plot_landmarks(results.pose_world_landmarks, mp_pose.POSE_CONNECTIONS)
 
-"""**Note:** This is actually a neat hack by mediapipe, the coordinates returned are not actually in **3D** but by setting hip landmark as the origin allows us to measure relative distance of the other points from the hip, and since this distance increases or decreases depending upon if you're close or further from the camera it gives us a sense of depth of each landmark point.
-
-### **<font style="color:rgb(134,19,348)">Create a Pose Detection Function</font>**
-
-Now we will put all this together to create a function that will perform pose detection on an image and will visualize the results or return the results depending upon the passed arguments.
-"""
 
 def detectPose(image, pose, display=True):
     '''
@@ -174,116 +141,6 @@ def detectPose(image, pose, display=True):
 image = cv2.imread('Introduction to Pose Detection and Pose Classification-/Introduction to Pose Detection and Pose Classification/media/sample2.jpg')
 detectPose(image, pose, display=True)
 
-# Read another sample image and perform pose detection on it.
-# image = cv2.imread('/content/drive/MyDrive/IOTTTT/Introduction to Pose Detection and Pose Classification/media/sample2.jpg')
-# detectPose(image, pose, display=True)
-
-# # Read another sample image and perform pose detection on it.
-# image = cv2.imread('/content/drive/MyDrive/IOTTTT/Introduction to Pose Detection and Pose Classification/media/sample3.jpg')
-# detectPose(image, pose, display=True)
-
-"""### **<font style="color:rgb(134,19,348)">Pose Detection On Real-Time Webcam Feed/Video</font>**
-
-The results on the images were pretty good, now we will try the function on a real-time webcam feed and a video. Depending upon whether you want to run pose detection on a video stored in the disk or on the webcam feed, you can comment and uncomment the initialization code of the VideoCapture object accordingly.
-"""
-
-# # Setup Pose function for video.
-# pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
-
-# # Initialize the VideoCapture object to read from the webcam.
-# video = cv2.VideoCapture(1)
-
-# # Create named window for resizing purposes
-# cv2.namedWindow('Pose Detection', cv2.WINDOW_NORMAL)
-
-
-# # Initialize the VideoCapture object to read from a video stored in the disk.
-# #video = cv2.VideoCapture('media/running.mp4')
-
-# # Set video camera size
-# video.set(3,1280)
-# video.set(4,960)
-
-# # Initialize a variable to store the time of the previous frame.
-# time1 = 0
-
-# # Iterate until the video is accessed successfully.
-# while video.isOpened():
-
-#     # Read a frame.
-#     ok, frame = video.read()
-
-#     # Check if frame is not read properly.
-#     if not ok:
-
-#         # Break the loop.
-#         break
-
-#     # Flip the frame horizontally for natural (selfie-view) visualization.
-#     frame = cv2.flip(frame, 1)
-
-#     # Get the width and height of the frame
-#     frame_height, frame_width, _ =  frame.shape
-
-#     # Resize the frame while keeping the aspect ratio.
-#     frame = cv2.resize(frame, (int(frame_width * (640 / frame_height)), 640))
-
-#     # Perform Pose landmark detection.
-#     frame, _ = detectPose(frame, pose_video, display=False)
-
-#     # Set the time for this frame to the current time.
-#     time2 = time()
-
-#     # Check if the difference between the previous and this frame time > 0 to avoid division by zero.
-#     if (time2 - time1) > 0:
-
-#         # Calculate the number of frames per second.
-#         frames_per_second = 1.0 / (time2 - time1)
-
-#         # Write the calculated number of frames per second on the frame.
-#         cv2.putText(frame, 'FPS: {}'.format(int(frames_per_second)), (10, 30),cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
-
-#     # Update the previous frame time to this frame time.
-#     # As this frame will become previous frame in next iteration.
-#     time1 = time2
-
-#     # Display the frame.
-#     cv2.imshow('Pose Detection', frame)
-
-#     # Wait until a key is pressed.
-#     # Retreive the ASCII code of the key pressed
-#     k = cv2.waitKey(1) & 0xFF
-
-#     # Check if 'ESC' is pressed.
-#     if(k == 27):
-
-#         # Break the loop.
-#         break
-
-# # Release the VideoCapture object.
-# video.release()
-
-# # Close the windows.
-# cv2.destroyAllWindows()
-
-"""Cool! so it works great on the videos too. The model is pretty fast and accurate.
-
-## **<font style="color:rgb(134,19,348)">Pose Classification with Angle Heuristics</font>**
-
-We have learned to perform pose detection, now we will level up our game by also classifying different yoga poses using the calculated angles of various joints. We will first detect the pose landmarks and then use them to compute angles between joints and depending upon those angles we will recognize the yoga pose of the prominent person in an image.
-
-<img src='https://drive.google.com/uc?export=download&id=1lhAcgq2jy5NavGQeYjTwwEAZIu6Aeypg' width=500>
-
-But this approach does have a drawback that limits its use to a controlled environment, the calculated angles vary with the angle between the person and the camera. So the person needs to be facing the camera straight to get the best results.
-
-### **<font style="color:rgb(134,19,348)">Create a Function to Calculate Angle between Landmarks</font>**
-
-Now we will create a function that will be capable of calculating angles between three landmarks. The angle between landmarks? Do not get confused, as this is the same as calculating the angle between two lines.
-
-The first point (landmark) is considered as the starting point of the first line, the second point (landmark) is considered as the ending point of the first line and the starting point of the second line as well, and the third point (landmark) is considered as the ending point of the second line.
-
-<img src='https://drive.google.com/uc?export=download&id=1KSN2OnenNMZ7Jwai_E1jeWdP5Mzay3Ad' width=400>
-"""
 
 def calculateAngle(landmark1, landmark2, landmark3):
     '''
@@ -503,183 +360,7 @@ output_image, landmarks = detectPose(image, pose, display=False)
 if landmarks:
     classifyPose(landmarks, output_image, display=True)
 
-# print("picture  11_left \n")
 
-# image = cv2.imread('/content/drive/MyDrive/IOT/train_dataset/Train/images/train/11_left.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-# print("picture  11\n")
-
-# image = cv2.imread('/content/drive/MyDrive/IOT/train_dataset/Train/images/train/11.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-
-# print("picture  10_left\n")
-
-# image = cv2.imread('/content/drive/MyDrive/IOT/train_dataset/Train/images/train/10_left.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-
-# print("picture  10\n")
-
-# image = cv2.imread('/content/drive/MyDrive/IOT/train_dataset/Train/images/train/10.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-# print("picture  08_right\n")
-
-# image = cv2.imread('/content/drive/MyDrive/IOT/train_dataset/Train/images/train/08_right.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-
-# print("picture  08\n")
-
-# image = cv2.imread('/content/drive/MyDrive/IOT/train_dataset/Train/images/train/08.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-
-# print("picture  08\n")
-
-# image = cv2.imread('/content/drive/MyDrive/IOT/train_dataset/Train/images/train/08.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-# print("picture  07_left\n")
-
-# image = cv2.imread('/content/drive/MyDrive/IOT/train_dataset/Train/images/train/07_left.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-# print("picture  07\n")
-
-# image = cv2.imread('/content/drive/MyDrive/IOT/train_dataset/Train/images/train/07.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-
-# print("picture  03_right\n")
-
-# image = cv2.imread('/content/drive/MyDrive/IOT/train_dataset/Train/images/train/03_right.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-# print("picture  03\n")
-
-# image = cv2.imread('/content/drive/MyDrive/IOT/train_dataset/Train/images/train/03.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-
-# print("picture  01_right \n")
-
-# image = cv2.imread('/content/drive/MyDrive/IOT/train_dataset/Train/images/train/01_right.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-# print("picture  01_left \n")
-
-# image = cv2.imread('/content/drive/MyDrive/IOT/train_dataset/Train/images/train/01_left.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-# # Read another sample image and perform pose classification on it.
-# image = cv2.imread('media/warriorIIpose1.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-"""## **<font style="color:rgb(134,19,348)">Tree Pose</font>**
-
-Tree Pose (also known as Vrikshasana) is another yoga pose for which the person has to keep one leg straight and bend the other leg at a required angle. The pose can be classified easily using the following combination of body part angles:
-
-* Around 180° angle at one knee
-* Around 35° (if right knee) or 335° (if left knee) angle at the other knee
-
-Now to understand it better, you should go back to the pose classification function above to overview the classification code of this yoga pose.
-
-We will perform pose classification on a few images of people in the tree yoga pose and display the results using the same function we had created above.
-"""
-
-# Read a sample image and perform pose classification on it.
-# image = cv2.imread('media/treepose.jpg')
-# output_image, landmarks = detectPose(image, mp_pose.Pose(static_image_mode=True,
-#                                          min_detection_confidence=0.5, model_complexity=0), display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-# # Read another sample image and perform pose classification on it.
-# image = cv2.imread('media/treepose1.jpg')
-# output_image, landmarks = detectPose(image, mp_pose.Pose(static_image_mode=True,
-#                                          min_detection_confidence=0.5, model_complexity=0), display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-# # Read another sample image and perform pose classification on it.
-# image = cv2.imread('media/treepose2.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-"""## **<font style="color:rgb(134,19,348)">T Pose</font>**
-
-T Pose (also known as a bind pose or reference pose) is the last pose we are dealing with in this lesson. To make this pose, one has to stand up like a tree with both hands wide open as branches. The following body part angles are required to make this one:
-
-* Around 180° at both elbows
-* Around 90° angle at both shoulders
-* Around 180° angle at both knees
-
-You can now go back to go through the classification code of this T pose in the pose classification function created above.
-
-Now, let's test the pose classification function on a few images of the T pose.
-"""
-
-# Read another sample image and perform pose classification on it.
-# image = cv2.imread('media/Tpose.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-# # Read another sample image and perform pose classification on it.
-# image = cv2.imread('media/Tpose1.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-# """So the function is working pretty well on all the known poses on images lets try it on an unknown pose called cobra pose (also known as Bhujangasana)."""
-
-# # Read another sample image and perform pose classification on it.
-# image = cv2.imread('media/cobrapose1.jpg')
-# output_image, landmarks = detectPose(image, pose, display=False)
-# if landmarks:
-#     classifyPose(landmarks, output_image, display=True)
-
-"""Now if you want you can extend the pose classification function to make it capable of identifying more yoga poses like the one in the image above. The following combination of body part angles can help classify this one:
-
-* Around 180° angle at both knees
-* Around 105° (if the person is facing right side) or 240° (if the person is facing left side) angle at both hips
-
-### **<font style="color:rgb(134,19,348)">Pose Classification On Real-Time Webcam Feed</font>**
-
-Now we will test the function created above to perform the pose classification on a real-time webcam feed.
-"""
 # *****************************************************VIDEO DETECTION********************************************************************
 # Setup Pose function for video.
 pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
@@ -743,18 +424,3 @@ while camera_video.isOpened():
 # Release the VideoCapture object and close the windows.
 camera_video.release()
 cv2.destroyAllWindows()
-
-"""As expected, the results were amazing, if you were having difficulty in making the poses you can expand the range of angles used in the classification function, but that may open up the possibility of false positives.
-
-#  <center> <font style="color:rgb(234,19,148)">Join My Mediapipe Course</font>   </center>
-
-You can now join the waitlist for my brand new upcoming course on Mediapipe, I’m not going to any details now but I’m just going to say this course will be a Blast, to say the least. This will be a completely application-oriented course and it will train you on how to create State of the Art exciting applications.
-
-<img src='https://drive.google.com/uc?export=download&id=1CP0jp5rlTkOuj23PzUeGGi3NknXVI3wi'>
-
-<br>
-<br>
-
-<center>  <a href="https://www.getdrip.com/forms/677961673/submissions/new"> <button>Join Now!</button>
-</a></center>
-"""
